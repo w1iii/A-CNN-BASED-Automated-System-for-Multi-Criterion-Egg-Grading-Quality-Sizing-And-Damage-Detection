@@ -1,0 +1,7 @@
+torch>=2.0
+opencv-python>=4.8
+numpy
+pyyaml
+tqdm
+scikit-learn
+# Add further packages as needed

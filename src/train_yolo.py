@@ -1,0 +1,93 @@
+"""
+Egg Detection YOLO Training Script
+Usage:
+1. Prepare dataset (or use convert_to_yolo.py)
+2. Run: python train_yolo.py --train
+"""
+
+import os
+import yaml
+from pathlib import Path
+
+YOLO_MODEL = "yolov8s.pt"
+IMG_SIZE = 640
+EPOCHS = 100
+BATCH = 16
+PROJECT_NAME = "egg_detection"
+RUN_NAME = "train1"
+
+def create_data_yaml():
+    data_config = {
+        "path": os.path.abspath("data/eggs"),
+        "train": "images/train",
+        "val": "images/val",
+        "test": "images/test",
+        "nc": 1,
+        "names": {0: "egg"}
+    }
+    with open("data/eggs/data.yaml", "w") as f:
+        yaml.dump(data_config, f, default_flow_style=False)
+    print("Created data/eggs/data.yaml")
+
+def prepare_directories():
+    dirs = [
+        "data/eggs/images/train", "data/eggs/images/val", "data/eggs/images/test",
+        "data/eggs/labels/train", "data/eggs/labels/val", "data/eggs/labels/test",
+    ]
+    for d in dirs:
+        os.makedirs(d, exist_ok=True)
+    print("Created dataset directories.")
+
+def train_yolo():
+    try:
+        from ultralytics import YOLO
+    except ImportError:
+        print("Error: ultralytics not installed. Run: pip install ultralytics")
+        return
+
+    model = YOLO(YOLO_MODEL)
+    results = model.train(
+        data="data/eggs/data.yaml",
+        epochs=EPOCHS,
+        imgsz=IMG_SIZE,
+        batch=BATCH,
+        project=PROJECT_NAME,
+        name=RUN_NAME,
+        exist_ok=True,
+        pretrained=True,
+        optimizer="SGD",
+        lr0=0.01,
+        lrf=0.01,
+        momentum=0.937,
+        weight_decay=0.0005,
+        warmup_epochs=3.0,
+        box=7.5,
+        cls=0.5,
+        hsv_h=0.015,
+        hsv_s=0.7,
+        hsv_v=0.4,
+        translate=0.1,
+        scale=0.5,
+        fliplr=0.5,
+        mosaic=1.0,
+        verbose=True,
+    )
+    print(f"\nTraining complete!")
+    print(f"Best model: {PROJECT_NAME}/{RUN_NAME}/weights/best.pt")
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prepare", action="store_true", help="Prepare directories only")
+    parser.add_argument("--train", action="store_true", help="Start training")
+    args = parser.parse_args()
+
+    if args.prepare:
+        prepare_directories()
+        create_data_yaml()
+    elif args.train:
+        train_yolo()
+    else:
+        prepare_directories()
+        create_data_yaml()
+        print("\nTo train: python train_yolo.py --train")

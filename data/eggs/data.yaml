@@ -1,0 +1,7 @@
+names:
+  0: egg
+nc: 1
+path: /Users/wii/Projects/python/egg-cv/data/eggs
+test: images/test
+train: images/train
+val: images/val

@@ -6,15 +6,16 @@ Usage:
 """
 
 import os
+
 import yaml
-from pathlib import Path
 
 YOLO_MODEL = "yolov8s.pt"
 IMG_SIZE = 640
-EPOCHS = 100
+EPOCHS = 20
 BATCH = 16
 PROJECT_NAME = "egg_detection"
 RUN_NAME = "train1"
+
 
 def create_data_yaml():
     data_config = {
@@ -23,20 +24,26 @@ def create_data_yaml():
         "val": "images/val",
         "test": "images/test",
         "nc": 1,
-        "names": {0: "egg"}
+        "names": {0: "egg"},
     }
     with open("data/eggs/data.yaml", "w") as f:
         yaml.dump(data_config, f, default_flow_style=False)
     print("Created data/eggs/data.yaml")
 
+
 def prepare_directories():
     dirs = [
-        "data/eggs/images/train", "data/eggs/images/val", "data/eggs/images/test",
-        "data/eggs/labels/train", "data/eggs/labels/val", "data/eggs/labels/test",
+        "data/eggs/images/train",
+        "data/eggs/images/val",
+        "data/eggs/images/test",
+        "data/eggs/labels/train",
+        "data/eggs/labels/val",
+        "data/eggs/labels/test",
     ]
     for d in dirs:
         os.makedirs(d, exist_ok=True)
     print("Created dataset directories.")
+
 
 def train_yolo():
     try:
@@ -72,13 +79,20 @@ def train_yolo():
         mosaic=1.0,
         verbose=True,
     )
-    print(f"\nTraining complete!")
+    print("========================")
+    print("\nTraining complete!")
+    print(f"Results: {results}")
     print(f"Best model: {PROJECT_NAME}/{RUN_NAME}/weights/best.pt")
+    print("========================")
+
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--prepare", action="store_true", help="Prepare directories only")
+    parser.add_argument(
+        "--prepare", action="store_true", help="Prepare directories only"
+    )
     parser.add_argument("--train", action="store_true", help="Start training")
     args = parser.parse_args()
 

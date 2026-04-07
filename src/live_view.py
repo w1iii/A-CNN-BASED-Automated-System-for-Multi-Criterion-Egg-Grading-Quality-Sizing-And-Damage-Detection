@@ -259,10 +259,10 @@ def main():
     parser = argparse.ArgumentParser(description="Enhanced Egg Detection Live View")
     parser.add_argument("--source", type=str, default="0", 
                         help="Camera index (0, 1, ...) or video file path")
-    parser.add_argument("--yolo-conf", type=float, default=0.65,
-                        help="YOLO confidence threshold (default 0.65)")
-    parser.add_argument("--cnn-conf", type=float, default=0.6,
-                        help="CNN confidence threshold (default 0.6)")
+    parser.add_argument("--yolo-conf", type=float, default=0.75,
+                        help="YOLO confidence threshold (default 0.75, range 0.5-0.95)")
+    parser.add_argument("--cnn-conf", type=float, default=0.70,
+                        help="CNN confidence threshold (default 0.70, range 0.5-0.99)")
     parser.add_argument("--no-logging", action="store_true",
                         help="Disable CSV logging")
     args = parser.parse_args()

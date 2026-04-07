@@ -80,7 +80,9 @@ class ObjectTracker:
                 used_detections.add(cent_idx)
         else:
             # Try to match existing objects
-            for obj_id, (last_cx, last_cy, _) in self.objects.items():
+            # Use list() to create a copy of keys to avoid "dictionary changed size during iteration"
+            for obj_id in list(self.objects.keys()):
+                last_cx, last_cy, _ = self.objects[obj_id]
                 best_dist = float('inf')
                 best_idx = -1
                 

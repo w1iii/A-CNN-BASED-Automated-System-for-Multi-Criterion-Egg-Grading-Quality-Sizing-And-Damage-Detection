@@ -15,3 +15,21 @@ model:
 training:
   epochs: 20
   lr: 0.001
+
+# Camera calibration (set mm_per_pixel based on your camera setup)
+# To calibrate: place a reference object of known size in the camera view
+# and measure the pixel width, then divide reference_size_mm / pixel_width
+calibration:
+  mm_per_pixel: 1.0  # Default: adjust based on your camera and distance
+  # Example: if a 50mm ruler appears as 100 pixels, mm_per_pixel = 50/100 = 0.5
+  camera_distance_cm: 15  # Approximate distance from camera to egg conveyor (optional)
+
+# Detection confidence thresholds
+detection:
+  yolo_confidence: 0.65  # YOLO detection confidence (0.5-0.9)
+  cnn_confidence: 0.6    # CNN classification confidence (0.5-0.99)
+  
+# Object tracking parameters
+tracking:
+  max_distance: 50       # Max centroid distance to match objects (pixels)
+  max_disappeared: 30    # Max frames an object can disappear before removal

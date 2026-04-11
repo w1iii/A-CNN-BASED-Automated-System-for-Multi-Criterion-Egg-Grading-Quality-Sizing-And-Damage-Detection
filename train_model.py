@@ -43,7 +43,8 @@ try:
         data=DATA_YAML,
         epochs=50,
         imgsz=640,
-        batch=16,
+        batch=8,  # Lower batch size for M1 (8GB RAM: 8, 16GB RAM: 16)
+        device="mps",  # Use Apple Silicon GPU (Metal Performance Shaders)
         project=MODEL_SAVE_DIR,
         name="egg_detection_finetuned",
         exist_ok=True,

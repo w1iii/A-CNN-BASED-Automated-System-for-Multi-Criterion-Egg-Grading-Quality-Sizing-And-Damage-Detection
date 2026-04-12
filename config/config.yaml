@@ -2,7 +2,7 @@
 
 data:
   raw_dir: "data/raw/"
-  processed_dir: "data/Eggs Classification/"
+  processed_dir: "Augmented_Images(Eggs)/"
   img_size: 224
   batch_size: 32
   num_workers: 4

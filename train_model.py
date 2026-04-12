@@ -6,9 +6,11 @@ import shutil
 # --- Configuration ---
 REPO_ID = "industoai/Egg-Detection"
 FILENAME = "model/egg_detector.pt"
-DATA_YAML = "/Users/wii/Projects/python/egg-cv/data/eggs/data.yaml"
-MODEL_SAVE_DIR = "/Users/wii/Projects/python/egg-cv/models"
+#DATA_YAML = "/Users/wii/Projects/python/egg-cv/data/eggs/data.yaml"
+#MODEL_SAVE_DIR = "/Users/wii/Projects/python/egg-cv/models"
 
+DATA_YAML = "/Users/SKyrrah/Documents/egg-cv/A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection/data/eggs/data.yaml"
+MODEL_SAVE_DIR = "/Users/SKyrrah/Documents/egg-cv/A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection/models"
 os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
 
 print("=" * 60)

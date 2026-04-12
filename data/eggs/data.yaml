@@ -2,7 +2,8 @@ names:
   0: not_damaged
   1: damaged
 nc: 2
-path: /Users/wii/Projects/python/egg-cv/data/eggs
-test: images/test
+#path: /Users/wii/Projects/python/egg-cv/data/eggs
+path: /Users/Skyrrah/Documents/egg-cv/A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection/data/eggs
+test: images/tes
 train: images/train
 val: images/val

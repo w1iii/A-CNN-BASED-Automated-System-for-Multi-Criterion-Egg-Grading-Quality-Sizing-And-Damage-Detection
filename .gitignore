@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.venv/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+
+# Backend
+backend/__pycache__/
+backend/.env
+*.log
+
+# Uploads (user data)
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.bmp
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Models (large files - optionally track separately)
+models/
+runs/
+
+# Frontend build
+frontend/dist/
+frontend/.vite/

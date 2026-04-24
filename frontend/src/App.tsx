@@ -1,0 +1,56 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuthStore } from './store/authStore';
+import { Layout } from './components/layout/Layout';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
+import { UploadPage } from './pages/Upload';
+import { History } from './pages/History';
+import { Result } from './pages/Result';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { token, checkAuth, isLoading } = useAuthStore();
+  
+  useEffect(() => {
+    if (!token) {
+      checkAuth();
+    }
+  }, [token, checkAuth]);
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+  
+  return token ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { token } = useAuthStore();
+  return token ? <Navigate to="/dashboard" /> : <>{children}</>;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/dashboard" />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="upload" element={<UploadPage />} />
+          <Route path="history" element={<History />} />
+          <Route path="result/:id" element={<Result />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

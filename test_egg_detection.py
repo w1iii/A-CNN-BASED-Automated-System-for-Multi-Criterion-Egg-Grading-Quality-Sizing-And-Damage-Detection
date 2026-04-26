@@ -2,6 +2,7 @@ import os
 import sys
 
 from huggingface_hub import hf_hub_download
+from inference_sdk import InferenceHTTPClient
 from ultralytics import YOLO
 
 # --- Prerequisites ---
@@ -12,6 +13,11 @@ REPO_ID = "industoai/Egg-Detection"
 FILENAME = "model/egg_detector.pt"
 MODEL_DIR = "models"  # Directory to store downloaded models
 os.makedirs(MODEL_DIR, exist_ok=True)  # Create model directory if it doesn't exist
+
+CLIENT = InferenceHTTPClient(
+    api_url="https://serverless.roboflow.com", api_key="YOUR_API_KEY"
+)
+
 # --- Video Source Configuration ---
 # Set VIDEO_SOURCE to:
 # - 0 for the default webcam.

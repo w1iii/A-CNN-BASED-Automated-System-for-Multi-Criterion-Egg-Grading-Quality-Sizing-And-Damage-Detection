@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 
 from app.database import get_db
-from app.models import User, Prediction
-from app.schemas import DashboardStats, HealthResponse
+from app.models import User, Prediction, DetectionBox
+from app.schemas import DashboardStats, HealthResponse, GradeDistribution
 from app.security import get_current_user
 from app.ml.yolo_inference import YOLOPredictor
 from app.config import settings
@@ -82,4 +82,37 @@ def health_check():
         status="healthy" if (model_loaded and database_connected) else "degraded",
         model_loaded=model_loaded,
         database_connected=database_connected
+    )
+
+
+@router.get("/grades", response_model=GradeDistribution)
+def get_grade_distribution(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    prediction_ids = db.query(Prediction.id).filter(
+        Prediction.user_id == current_user.id
+    ).subquery()
+    
+    grade_counts = db.query(
+        DetectionBox.grade,
+        func.count(DetectionBox.id)
+    ).filter(
+        DetectionBox.prediction_id.in_(prediction_ids)
+    ).group_by(DetectionBox.grade).all()
+    
+    grades_dict = {"AA": 0, "A": 0, "B": 0, "N/A": 0, "Reject": 0}
+    for grade, count in grade_counts:
+        if grade in grades_dict:
+            grades_dict[grade] = count
+    
+    total = sum(grades_dict.values())
+    
+    return GradeDistribution(
+        grade_aa=grades_dict["AA"],
+        grade_a=grades_dict["A"],
+        grade_b=grades_dict["B"],
+        grade_na=grades_dict["N/A"],
+        grade_reject=grades_dict["Reject"],
+        total=total
     )

@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { UploadPage } from './pages/Upload';
 import { History } from './pages/History';
 import { Result } from './pages/Result';
+import { Settings } from './pages/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, checkAuth, isLoading } = useAuthStore();
@@ -47,6 +48,7 @@ function App() {
           <Route path="upload" element={<UploadPage />} />
           <Route path="history" element={<History />} />
           <Route path="result/:id" element={<Result />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

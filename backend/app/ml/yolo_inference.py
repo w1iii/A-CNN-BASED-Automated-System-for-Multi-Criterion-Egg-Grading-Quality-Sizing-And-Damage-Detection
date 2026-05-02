@@ -8,9 +8,10 @@ from app.config import settings
 
 
 class YOLOPredictor:
-    def __init__(self, model_path: Optional[str] = None, confidence: float = 0.75):
+    def __init__(self, model_path: Optional[str] = None, confidence: float = 0.75, mm_per_pixel: Optional[float] = None):
         self.model_path = model_path or settings.MODEL_PATH
         self.confidence = confidence
+        self.mm_per_pixel = mm_per_pixel or settings.MM_PER_PIXEL
         self.class_names = ["not_damaged", "damaged"]
         self._model = None
 
@@ -31,6 +32,36 @@ class YOLOPredictor:
         except Exception as e:
             print(f"Error loading model: {e}")
             return False
+
+    def calculate_size_category(self, diameter_px: int) -> str:
+        if diameter_px <= 0:
+            return "unknown"
+        diameter_mm = diameter_px * self.mm_per_pixel
+        if diameter_mm < 50:
+            return "small"
+        elif diameter_mm < 60:
+            return "medium"
+        else:
+            return "large"
+
+    def estimate_weight(self, diameter_px: int) -> Optional[float]:
+        if diameter_px <= 0:
+            return None
+        diameter_mm = diameter_px * self.mm_per_pixel
+        weight = 0.05 * (diameter_mm ** 3)
+        return round(max(30, min(80, weight)), 1)
+
+    def map_to_grade(self, class_name: str, size_category: Optional[str]) -> str:
+        if class_name == "damaged":
+            return "Reject"
+        if not size_category or size_category == "unknown":
+            return "N/A"
+        if size_category == "large":
+            return "AA"
+        elif size_category == "medium":
+            return "A"
+        else:
+            return "B"
 
     def predict_image(self, image_path: str) -> Dict[str, Any]:
         results = self.model(image_path, conf=self.confidence)
@@ -55,10 +86,19 @@ class YOLOPredictor:
             clss = boxes.cls.cpu().numpy()
 
             for i, box in enumerate(xyxy):
+                x1, y1, x2, y2 = [int(x) for x in box]
+                diameter_px = max(x2 - x1, y2 - y1)
+                size_cat = self.calculate_size_category(diameter_px)
+                weight = self.estimate_weight(diameter_px)
+                grade = self.map_to_grade(self.class_names[int(clss[i])], size_cat)
+                
                 detections.append({
                     "class": self.class_names[int(clss[i])],
                     "confidence": float(confs[i]),
-                    "bbox": [int(x) for x in box]
+                    "bbox": [x1, y1, x2, y2],
+                    "size_category": size_cat,
+                    "weight_g": weight,
+                    "grade": grade
                 })
 
         return {
@@ -71,13 +111,25 @@ class YOLOPredictor:
     def draw_boxes(self, image: np.ndarray, detections: List[Dict]) -> np.ndarray:
         img = image.copy()
 
+        grade_colors = {
+            "AA": (34, 197, 94),
+            "A": (59, 130, 246),
+            "B": (245, 158, 11),
+            "N/A": (107, 114, 128),
+            "Reject": (239, 68, 68),
+        }
+
         for det in detections:
             x1, y1, x2, y2 = det["bbox"]
             cls = det["class"]
             conf = det["confidence"]
+            grade = det.get("grade", "N/A")
+            weight = det.get("weight_g", 0)
 
-            color = (0, 255, 0) if cls == "not_damaged" else (0, 0, 255)
-            label = f"{cls} {conf:.2f}"
+            color = grade_colors.get(grade, (128, 128, 128))
+            label = f"{grade} {conf:.2f}"
+            if weight:
+                label += f" {weight}g"
 
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
             cv2.putText(img, label, (x1, y1 - 10),

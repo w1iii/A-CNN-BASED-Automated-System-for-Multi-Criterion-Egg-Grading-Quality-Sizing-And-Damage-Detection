@@ -44,6 +44,9 @@ class DetectionBoxResponse(BaseModel):
     x2: int
     y2: int
     annotated: bool
+    size_category: Optional[str] = None
+    weight_g: Optional[float] = None
+    grade: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -93,3 +96,23 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     database_connected: bool
+
+
+class UserSettings(BaseModel):
+    mm_per_pixel: float = 0.5
+
+    class Config:
+        from_attributes = True
+
+
+class UserSettingsUpdate(BaseModel):
+    mm_per_pixel: float
+
+
+class GradeDistribution(BaseModel):
+    grade_aa: int = 0
+    grade_a: int = 0
+    grade_b: int = 0
+    grade_na: int = 0
+    grade_reject: int = 0
+    total: int = 0

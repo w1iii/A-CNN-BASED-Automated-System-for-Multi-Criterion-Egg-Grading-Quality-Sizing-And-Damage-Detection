@@ -34,7 +34,10 @@ async def upload_file(
     )
     
     try:
-        predictor = YOLOPredictor(confidence=confidence_threshold)
+        predictor = YOLOPredictor(
+            confidence=confidence_threshold,
+            mm_per_pixel=current_user.mm_per_pixel
+        )
         pred_service = prediction_service.__class__(predictor)
         prediction = pred_service.run_prediction(
             db, prediction.id, confidence_threshold, save_annotated

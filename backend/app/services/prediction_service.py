@@ -75,7 +75,10 @@ class PredictionService:
                     y1=det["bbox"][1],
                     x2=det["bbox"][2],
                     y2=det["bbox"][3],
-                    annotated=save_annotated
+                    annotated=save_annotated,
+                    size_category=det.get("size_category"),
+                    weight_g=det.get("weight_g"),
+                    grade=det.get("grade")
                 )
                 db.add(box)
             

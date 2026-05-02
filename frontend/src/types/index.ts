@@ -20,6 +20,9 @@ export interface DetectionBox {
   x2: number;
   y2: number;
   annotated: boolean;
+  size_category?: 'small' | 'medium' | 'large';
+  weight_g?: number;
+  grade?: 'AA' | 'A' | 'B' | 'N/A' | 'Reject';
 }
 
 export interface Prediction {
@@ -50,10 +53,24 @@ export interface DashboardStats {
   damaged_percentage: number;
   avg_processing_time_ms: number;
   recent_predictions: Prediction[];
+  grade_distribution?: GradeDistribution;
 }
 
 export interface HealthStatus {
   status: string;
   model_loaded: boolean;
   database_connected: boolean;
+}
+
+export interface GradeDistribution {
+  grade_aa: number;
+  grade_a: number;
+  grade_b: number;
+  grade_na: number;
+  grade_reject: number;
+  total: number;
+}
+
+export interface UserSettings {
+  mm_per_pixel: number;
 }

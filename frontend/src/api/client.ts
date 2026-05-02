@@ -94,6 +94,21 @@ class ApiClient {
     const response = await this.client.get('/dashboard/health');
     return response.data;
   }
+
+  async getGradeDistribution() {
+    const response = await this.client.get('/dashboard/grades');
+    return response.data;
+  }
+
+  async getSettings() {
+    const response = await this.client.get('/settings');
+    return response.data;
+  }
+
+  async updateSettings(settings: { mm_per_pixel: number }) {
+    const response = await this.client.put('/settings', settings);
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();

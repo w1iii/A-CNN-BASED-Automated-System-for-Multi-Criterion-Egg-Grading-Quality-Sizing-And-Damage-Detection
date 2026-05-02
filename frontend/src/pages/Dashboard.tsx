@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileImage, Film, Target, Clock, AlertTriangle, TrendingUp, Lightbulb, X } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/common/Card';
 import { apiClient } from '../api/client';
-import { DashboardStats } from '../types';
+import { DashboardStats, GradeDistribution } from '../types';
 
 const statCards = [
   { key: 'total_predictions', label: 'Total Predictions', icon: Target, color: 'text-primary-600', bg: 'bg-primary-50', tooltip: 'Total image/video analyses performed' },
@@ -14,14 +15,19 @@ const statCards = [
 
 export function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [gradeData, setGradeData] = useState<GradeDistribution | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await apiClient.getDashboardStats();
-        setStats(data);
+        const [statsData, gradeDistribution] = await Promise.all([
+          apiClient.getDashboardStats(),
+          apiClient.getGradeDistribution()
+        ]);
+        setStats(statsData);
+        setGradeData(gradeDistribution);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
       } finally {
@@ -74,24 +80,51 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Stats with tooltips (hover for info) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map(({ key, label, icon: Icon, color, bg, tooltip }) => (
-          <Card key={key} title={tooltip}>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className={`p-3 rounded-lg ${bg}`}>
-                <Icon className={`w-6 h-6 ${color}`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats[key as keyof DashboardStats] as number}
-                </p>
-                <p className="text-sm text-gray-500">{label}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Grade Distribution */}
+      {gradeData && gradeData.total > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Grade Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Grade AA', value: gradeData.grade_aa, fill: '#22c55e' },
+                    { name: 'Grade A', value: gradeData.grade_a, fill: '#3b82f6' },
+                    { name: 'Grade B', value: gradeData.grade_b, fill: '#f59e0b' },
+                    { name: 'N/A', value: gradeData.grade_na, fill: '#6b7280' },
+                    { name: 'Reject', value: gradeData.grade_reject, fill: '#ef4444' },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {[
+                    { name: 'Grade AA', value: gradeData.grade_aa, fill: '#22c55e' },
+                    { name: 'Grade A', value: gradeData.grade_a, fill: '#3b82f6' },
+                    { name: 'Grade B', value: gradeData.grade_b, fill: '#f59e0b' },
+                    { name: 'N/A', value: gradeData.grade_na, fill: '#6b7280' },
+                    { name: 'Reject', value: gradeData.grade_reject, fill: '#ef4444' },
+                  ].map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* How it works & Troubleshooting */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

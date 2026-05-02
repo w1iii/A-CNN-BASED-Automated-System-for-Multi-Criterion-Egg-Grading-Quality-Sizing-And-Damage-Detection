@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, predictions, dashboard
+from app.routers import auth, predictions, dashboard, user_settings
 from app.ml.yolo_inference import YOLOPredictor
 
 model_loaded = False
@@ -45,6 +45,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(auth.router, prefix="/api/v1/auth")
 app.include_router(predictions.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(user_settings.router, prefix="/api/v1")
 
 
 @app.get("/")

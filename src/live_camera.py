@@ -11,7 +11,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        default="egg_detection/train1/weights/best.pt",
+        default="egg_detection/finetune_egg_v1/weights/best.pt",
         help="Path to a YOLO checkpoint",
     )
     parser.add_argument("--camera", type=int, default=0, help="Camera device index")

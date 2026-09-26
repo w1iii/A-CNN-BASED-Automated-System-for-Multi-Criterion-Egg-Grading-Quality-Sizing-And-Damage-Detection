@@ -119,6 +119,32 @@ but new training can still reduce performance when labels are wrong or the
 dataset is narrow. Keep the original checkpoint and compare both models on
 the same locked test set before replacing it.
 
+The committed run reports validation metrics of mAP50=0.96576 and
+precision=0.96487 at epoch 50. On the shared 19-image/57-egg test split at
+confidence 0.75, the fine-tuned checkpoint achieved precision=0.9584,
+recall=1.0000, mAP50=0.9860, mAP50-95=0.9135, exact tray-count accuracy
+0.8947, 0 missed eggs per tray, and 0.1579 false positives per tray. The
+baseline scored precision=0.8696, recall=0.3509, mAP50=0.5948,
+mAP50-95=0.4630, exact tray-count accuracy 0.6316, 0.3158 missed eggs per
+tray, and 0.3158 false positives per tray. The fine-tuned checkpoint is now
+the backend and local-camera default; the baseline remains available for
+regression comparisons.
+
+To reproduce the fine-tuned test evaluation:
+
+```bash
+python src/evaluate_detector.py \
+    --model egg_detection/finetune_egg_v1/weights/best.pt \
+    --data-yaml data/detection_finetune/data.yaml \
+    --confidence 0.75 \
+    --output reports/detector_finetune_test_report.json
+```
+
+The confidence threshold was selected on validation data before this test
+evaluation. The complete reports are stored in
+`reports/detector_baseline_finetune_split_report.json` and
+`reports/detector_finetune_test_report.json`.
+
 ### Training on Another Machine
 Transfer the 307MB dataset to any machine with Python:
 

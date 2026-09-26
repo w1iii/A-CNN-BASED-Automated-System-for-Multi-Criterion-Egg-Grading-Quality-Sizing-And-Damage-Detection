@@ -1,7 +1,7 @@
 task: detect
 mode: train
-model: C:\Users\USER_1\Thesis\A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection\egg_detection\train1\weights\best.pt
-data: C:\Users\USER_1\AppData\Local\Temp\tmps2rendvj.yaml
+model: egg_detection/train1/weights/best.pt
+data: data/detection_finetune/data.yaml
 epochs: 50
 time: null
 patience: 50
@@ -12,7 +12,7 @@ save_period: -1
 cache: false
 device: cuda:0
 workers: 0
-project: C:\Users\USER_1\Thesis\A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection\egg_detection
+project: egg_detection
 name: finetune_egg_v1
 exist_ok: false
 pretrained: true
@@ -102,4 +102,4 @@ erasing: 0.4
 crop_fraction: 1.0
 cfg: null
 tracker: botsort.yaml
-save_dir: C:\Users\USER_1\Thesis\A-CNN-BASED-Automated-System-for-Multi-Criterion-Egg-Grading-Quality-Sizing-And-Damage-Detection\egg_detection\finetune_egg_v1
+save_dir: egg_detection/finetune_egg_v1

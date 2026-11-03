@@ -94,7 +94,11 @@ class EmptyPredictor:
 class FakeDamage:
     model_version = "egg_grader.pth"
 
+    def __init__(self):
+        self.crops = []
+
     def classify_crop(self, crop):
+        self.crops.append(crop)
         return SimpleNamespace(
             status="Not Damaged",
             confidence=0.9,
@@ -104,7 +108,11 @@ class FakeDamage:
 
 
 class FakeCleanliness:
+    def __init__(self):
+        self.crops = []
+
     def classify_crop(self, crop):
+        self.crops.append(crop)
         return SimpleNamespace(
             status="Stained",
             confidence=0.88,
@@ -167,8 +175,10 @@ class PredictionServiceTests(unittest.TestCase):
         self.assertIsNone(prediction.annotated_path)
 
     def test_stained_cleanliness_rejects_even_without_final_cleanliness(self):
+        damage = FakeDamage()
+        cleanliness = FakeCleanliness()
         service = PredictionService(
-            FakePredictor(), FakeDamage(), FakeCleanliness()
+            FakePredictor(), damage, cleanliness
         )
         prediction = service.create_prediction(
             self.db,
@@ -188,6 +198,8 @@ class PredictionServiceTests(unittest.TestCase):
         self.assertEqual(box.cleanliness_confidence, 0.88)
         self.assertEqual(box.cleanliness_model_version, "cleanliness_v1.pth")
         self.assertEqual(box.grade, "Reject")
+        self.assertEqual(damage.crops[0].shape[:2], (44, 33))
+        self.assertEqual(cleanliness.crops[0].shape[:2], (38, 29))
         # Uncalibrated size cannot produce a letter grade, even provisionally.
         self.assertEqual(box.provisional_grade, "N/A")
         self.assertEqual(box.size, "Unknown")

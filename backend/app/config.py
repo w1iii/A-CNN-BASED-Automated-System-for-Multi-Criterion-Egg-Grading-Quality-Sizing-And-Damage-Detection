@@ -31,19 +31,24 @@ class Settings(BaseSettings):
     )
     EGG_CSV_PATH: str = str(PROJECT_ROOT / "reports" / "egg_statistics_v2.csv")
     CONFIDENCE_THRESHOLD: float = 0.75
-    DAMAGE_DECISION_THRESHOLD: float = 0.18
+    # Conservative MVP defaults; the lower validation thresholds favor recall
+    # but produce too many artifact-driven false positives in web images.
+    DAMAGE_DECISION_THRESHOLD: float = 0.65
     DAMAGE_REVIEW_THRESHOLD: float = 0.75
     CLEANLINESS_MODEL_PATH: str = str(
         PROJECT_ROOT / "models" / "egg_grader_cleanliness_v1.pth"
     )
-    # Validation-selected for the current cleanliness checkpoint at a 0.98
-    # stained-recall floor. Re-select when replacing the checkpoint.
-    CLEANLINESS_DECISION_THRESHOLD: float = 0.04
+    # The validation-selected 0.04 threshold maximizes stained recall but
+    # turns minor background artifacts into stained decisions.
+    CLEANLINESS_DECISION_THRESHOLD: float = 0.60
     CLEANLINESS_REVIEW_THRESHOLD: float = 0.75
     # Set true only after physical validation and release sign-off. Until then
     # the UI must surface cleanliness results as beta, never as final grades.
     CLEANLINESS_RELEASE_APPROVED: bool = False
     DETECTION_CROP_PADDING: float = 0.1
+    # The cleanliness checkpoint was trained on tight annotated egg crops,
+    # unlike the damage checkpoint which uses detector crops with context.
+    CLEANLINESS_CROP_PADDING: float = 0.0
     MIN_CROP_SIZE: int = 8
     MAX_TRAY_EGGS: int = 5
     DETECTION_DUPLICATE_IOU: float = 0.85

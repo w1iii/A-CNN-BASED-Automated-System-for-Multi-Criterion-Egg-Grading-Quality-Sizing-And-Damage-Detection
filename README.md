@@ -459,11 +459,11 @@ calibration error. It also records the device used and the checkpoint SHA-256;
 path fields are normalized to POSIX so the artifacts stay portable across
 machines. Commit the canonical report from the primary dev machine rather than
 overwriting it with a run from another OS.
- Current committed checkpoint at the validation-selected
-`0.04` threshold: validation balanced accuracy `0.9781`, stained recall `0.9800`;
-test balanced accuracy `0.9779`, stained recall `0.9796`, one false positive and
-one false negative. The two test errors look like label-noise/hard cases; inspect
-them before changing labels.
+The current checkpoint was evaluated at the validation-selected `0.04`
+threshold: validation balanced accuracy `0.9781`, stained recall `0.9800`;
+test balanced accuracy `0.9779`, stained recall `0.9796`. The MVP uses a
+conservative `0.5` threshold instead to reduce artifact-driven stained
+decisions until physical validation is complete.
 
 ### Analyze Results
 ```bash
@@ -493,9 +493,12 @@ Runtime settings come from environment variables / `.env` and are defined in
 `backend/app/config.py`. See `.env.example` for the full list, including:
 
 - `CONFIDENCE_THRESHOLD` — YOLO detections (default: 0.75)
-- `DAMAGE_DECISION_THRESHOLD` — damage classifier (default: 0.18)
-- `CLEANLINESS_DECISION_THRESHOLD` — stain threshold (default: 0.04,
-  validation-selected for the current checkpoint at a 0.98 recall floor)
+- `DAMAGE_DECISION_THRESHOLD` — damage classifier (default: 0.65 for
+  conservative MVP behavior; the validation-selected 0.18 threshold favors
+  damaged recall but is sensitive to minor artifacts)
+- `CLEANLINESS_DECISION_THRESHOLD` — stain threshold (default: 0.60 for
+  conservative MVP behavior; the validation-selected 0.04 threshold favors
+  stained recall but is sensitive to minor artifacts)
 - `CLEANLINESS_REVIEW_THRESHOLD` — clean-confidence review threshold (default: 0.75)
 - `MAX_TRAY_EGGS` — static-tray capacity (default: 5)
 - `DETECTION_DUPLICATE_IOU` — duplicate suppression (default: 0.85)

@@ -101,13 +101,13 @@ class PredictionService:
             )
 
             for det in result["detections"]:
-                crop = crop_detection(
+                damage_crop = crop_detection(
                     img,
                     det["bbox"],
                     settings.DETECTION_CROP_PADDING,
                     settings.MIN_CROP_SIZE,
                 )
-                damage = self.damage_classifier.classify_crop(crop)
+                damage = self.damage_classifier.classify_crop(damage_crop)
                 det["damage_status"] = damage.status
                 det["damage_confidence"] = damage.confidence
                 det["damage_model_version"] = damage.model_version
@@ -116,7 +116,15 @@ class PredictionService:
                     cleanliness_confidence = None
                     cleanliness_model_version = None
                 else:
-                    cleanliness = self.cleanliness_classifier.classify_crop(crop)
+                    cleanliness_crop = crop_detection(
+                        img,
+                        det["bbox"],
+                        settings.CLEANLINESS_CROP_PADDING,
+                        settings.MIN_CROP_SIZE,
+                    )
+                    cleanliness = self.cleanliness_classifier.classify_crop(
+                        cleanliness_crop
+                    )
                     cleanliness_status = cleanliness.status
                     cleanliness_confidence = cleanliness.confidence
                     cleanliness_model_version = cleanliness.model_version
@@ -305,6 +313,7 @@ class PredictionService:
             "cleanliness_decision_threshold": cleanliness_threshold,
             "cleanliness_review_threshold": cleanliness_review,
             "crop_padding": settings.DETECTION_CROP_PADDING,
+            "cleanliness_crop_padding": settings.CLEANLINESS_CROP_PADDING,
             "max_tray_eggs": result.get("max_eggs", settings.MAX_TRAY_EGGS),
             "tray_count_valid": result.get("count_valid", True),
             "tray_over_capacity": result.get("over_capacity", False),
@@ -374,8 +383,8 @@ def crop_detection(
     box_width, box_height = x2 - x1, y2 - y1
     if box_width <= 0 or box_height <= 0:
         return image[0:0, 0:0]
-    pad_x = int(box_width * padding_ratio)
-    pad_y = int(box_height * padding_ratio)
+    pad_x = int(round(box_width * padding_ratio))
+    pad_y = int(round(box_height * padding_ratio))
     left = max(0, x1 - pad_x)
     top = max(0, y1 - pad_y)
     right = min(width, x2 + pad_x)

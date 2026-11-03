@@ -83,11 +83,6 @@ export function ResultsPanel({ result, crops }: ResultsPanelProps) {
           <span className="rounded-full bg-white/80 border border-emerald-200/70 px-3 py-1 font-code-metric text-label-sm text-emerald-700 font-bold">
             {processingTime} INFERENCE
           </span>
-          {result && result.needs_review_count > 0 && (
-            <span className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-code-metric text-label-sm text-amber-800 font-bold">
-              {result.needs_review_count} REVIEW
-            </span>
-          )}
           {result && !cleanlinessApproved && (
             <span
               className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-code-metric text-label-sm text-amber-800 font-bold"

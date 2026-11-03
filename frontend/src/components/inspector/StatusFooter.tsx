@@ -28,9 +28,6 @@ export function StatusFooter({
       <div className="flex flex-wrap items-center gap-space-md">
         <div className="flex items-center gap-space-xs rounded-full bg-white/80 border border-slate-200 px-3 py-1">
           <StatusDot online={Boolean(health)} />
-          <span className="font-code-metric text-label-sm text-[#424656] font-bold">
-            API {health ? (ready ? 'ONLINE' : 'DEGRADED') : 'OFFLINE'}
-          </span>
         </div>
         <div className="flex flex-wrap items-center gap-space-sm font-code-metric text-label-sm text-[#727687]">
           <span className={health?.model_loaded ? 'text-emerald-700' : ''}>

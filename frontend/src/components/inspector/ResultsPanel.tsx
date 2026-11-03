@@ -83,22 +83,6 @@ export function ResultsPanel({ result, crops }: ResultsPanelProps) {
           <span className="rounded-full bg-white/80 border border-emerald-200/70 px-3 py-1 font-code-metric text-label-sm text-emerald-700 font-bold">
             {processingTime} INFERENCE
           </span>
-          {result && !cleanlinessApproved && (
-            <span
-              className="rounded-full bg-amber-50 border border-amber-300 px-3 py-1 font-code-metric text-label-sm text-amber-800 font-bold"
-              title="Cleanliness model has not passed physical release validation"
-            >
-              BETA · CLEANLINESS UNVALIDATED
-            </span>
-          )}
-          {result && !calibrationReady && (
-            <span
-              className="rounded-full bg-slate-100 border border-slate-300 px-3 py-1 font-code-metric text-label-sm text-slate-700 font-bold"
-              title="Size and weight require camera calibration"
-            >
-              SIZE/WEIGHT UNCALIBRATED
-            </span>
-          )}
         </div>
       </div>
 

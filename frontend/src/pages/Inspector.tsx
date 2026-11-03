@@ -154,17 +154,11 @@ export function Inspector() {
                 <span className="font-headline-lg text-headline-lg text-[#181c1f] tracking-tight font-bold leading-none">
                   Egg-CV
                 </span>
-                <span className="font-label-sm text-label-sm text-[#727687] uppercase tracking-widest mt-1">
-                  Optical Grading Station
-                </span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-space-xs">
               <span className="rounded-full bg-blue-50 border border-blue-200/70 px-3 py-1 font-code-metric text-label-sm text-[#0050cb] font-bold">
                 MVP // LOCAL OPERATOR
-              </span>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200/70 px-3 py-1 font-code-metric text-label-sm text-emerald-700 font-bold">
-                AUTH-FREE
               </span>
             </div>
           </header>

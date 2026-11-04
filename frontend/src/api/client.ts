@@ -38,6 +38,18 @@ class ApiClient {
     return response.data;
   }
 
+  async recordBatch(
+    id: number,
+    counts: { good: number; stained: number; damaged: number },
+  ) {
+    const response = await this.client.post(`/predictions/${id}/record`, {
+      okay_count: counts.good,
+      stained_count: counts.stained,
+      damaged_count: counts.damaged,
+    });
+    return response.data;
+  }
+
   async getPrediction(id: number) {
     const response = await this.client.get(`/predictions/${id}`);
     return response.data;

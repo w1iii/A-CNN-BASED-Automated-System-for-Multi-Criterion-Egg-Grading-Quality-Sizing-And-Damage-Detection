@@ -19,6 +19,21 @@ from app.services.grading_service import (
     join_review_reasons,
     provisional_grade,
 )
+from app.schemas import BatchRecordRequest
+
+
+def classify_batch_counts(prediction: Prediction) -> dict[str, int]:
+    counts = {"okay": 0, "stained": 0, "damaged": 0, "review": 0}
+    for box in prediction.detection_boxes:
+        if box.requires_review or box.damage_status in (None, "Needs Review"):
+            counts["review"] += 1
+        elif box.damage_status == "Damaged":
+            counts["damaged"] += 1
+        elif box.cleanliness_status == "Stained":
+            counts["stained"] += 1
+        else:
+            counts["okay"] += 1
+    return counts
 
 
 class PredictionService:
@@ -328,12 +343,44 @@ class PredictionService:
     ) -> list[Prediction]:
         return (
             db.query(Prediction)
-            .filter(Prediction.user_id == user_id)
+            .filter(Prediction.user_id == user_id, Prediction.batch_recorded.is_(True))
             .order_by(Prediction.created_at.desc())
             .offset(skip)
             .limit(limit)
             .all()
         )
+
+    def record_batch(
+        self,
+        db: Session,
+        prediction_id: int,
+        user_id: int,
+        batch: BatchRecordRequest,
+    ) -> Prediction:
+        prediction = (
+            db.query(Prediction)
+            .filter(
+                Prediction.id == prediction_id,
+                Prediction.user_id == user_id,
+            )
+            .first()
+        )
+        if not prediction:
+            raise LookupError("Prediction not found")
+        if prediction.status != "completed":
+            raise ValueError("Only completed predictions can be recorded")
+        if prediction.batch_recorded:
+            return prediction
+
+        prediction.batch_recorded = True
+        prediction.batch_recorded_at = datetime.utcnow()
+        prediction.okay_count = batch.okay_count
+        prediction.stained_count = batch.stained_count
+        prediction.batch_damaged_count = batch.damaged_count
+        prediction.batch_review_count = 0
+        db.commit()
+        db.refresh(prediction)
+        return prediction
 
     def get_prediction_detail(
         self, db: Session, prediction_id: int, user_id: int

@@ -9,19 +9,100 @@ import {
 } from '../utils/frames';
 import { CameraViewfinder } from '../components/inspector/CameraViewfinder';
 import { CaptureBanner } from '../components/inspector/CaptureBanner';
-import { ResultsPanel } from '../components/inspector/ResultsPanel';
+import { BatchCounts, ResultsPanel } from '../components/inspector/ResultsPanel';
 import { StatusFooter } from '../components/inspector/StatusFooter';
+import { Navbar } from '../components/Navbar';
+
+const INSPECTOR_STORAGE_KEY = 'egg-cv:inspector-state';
+
+interface PersistedInspectorState {
+  result: PredictionDetail | null;
+  crops: Record<number, string>;
+  batchCounts: BatchCounts;
+}
+
+const emptyBatchCounts: BatchCounts = {
+  good: 0,
+  stained: 0,
+  damaged: 0,
+};
+
+function isBatchCounts(value: unknown): value is BatchCounts {
+  if (!value || typeof value !== 'object') return false;
+  const counts = value as Record<string, unknown>;
+  return (
+    typeof counts.good === 'number' &&
+    typeof counts.stained === 'number' &&
+    typeof counts.damaged === 'number'
+  );
+}
+
+function readPersistedState(): PersistedInspectorState {
+  try {
+    const stored = window.localStorage.getItem(INSPECTOR_STORAGE_KEY);
+    if (!stored) {
+      return { result: null, crops: {}, batchCounts: emptyBatchCounts };
+    }
+
+    const parsed: unknown = JSON.parse(stored);
+    if (!parsed || typeof parsed !== 'object') {
+      return { result: null, crops: {}, batchCounts: emptyBatchCounts };
+    }
+
+    const state = parsed as Record<string, unknown>;
+    const result =
+      state.result && typeof state.result === 'object'
+        ? (state.result as PredictionDetail)
+        : null;
+    const crops =
+      state.crops && typeof state.crops === 'object'
+        ? (state.crops as Record<number, string>)
+        : {};
+
+    return {
+      result,
+      crops,
+      batchCounts: isBatchCounts(state.batchCounts)
+        ? state.batchCounts
+        : emptyBatchCounts,
+    };
+  } catch {
+    return { result: null, crops: {}, batchCounts: emptyBatchCounts };
+  }
+}
 
 export function Inspector() {
   const camera = useCamera();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const analysisInFlightRef = useRef(false);
-  const [result, setResult] = useState<PredictionDetail | null>(null);
-  const [crops, setCrops] = useState<Record<number, string>>({});
+  const [persistedState] = useState<PersistedInspectorState>(
+    readPersistedState,
+  );
+  const [result, setResult] = useState<PredictionDetail | null>(
+    persistedState.result,
+  );
+  const [crops, setCrops] = useState<Record<number, string>>(
+    persistedState.crops,
+  );
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [batchCounts, setBatchCounts] = useState<BatchCounts>(
+    persistedState.batchCounts,
+  );
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        INSPECTOR_STORAGE_KEY,
+        JSON.stringify({ result, crops, batchCounts }),
+      );
+    } catch {
+      setError('Unable to save inspection data in this browser.');
+    }
+  }, [batchCounts, crops, result]);
 
   useEffect(() => {
     let active = true;
@@ -55,6 +136,24 @@ export function Inspector() {
       } catch {
         thumbnails = {};
       }
+      const captureCounts = detail.detection_boxes.reduce(
+        (summary, box) => {
+          if (box.damage_status === 'Damaged') {
+            summary.damaged += 1;
+          } else if (box.cleanliness_status === 'Stained') {
+            summary.stained += 1;
+          } else {
+            summary.good += 1;
+          }
+          return summary;
+        },
+        { good: 0, stained: 0, damaged: 0 },
+      );
+      setBatchCounts((current) => ({
+        good: current.good + captureCounts.good,
+        stained: current.stained + captureCounts.stained,
+        damaged: current.damaged + captureCounts.damaged,
+      }));
       setResult(detail);
       setCrops(thumbnails);
     } catch (err) {
@@ -133,6 +232,22 @@ export function Inspector() {
     URL.revokeObjectURL(url);
   }, [result]);
 
+  const recordBatch = useCallback(async () => {
+    if (!result || recording) return;
+    setRecording(true);
+    setError(null);
+    try {
+      await apiClient.recordBatch(result.id, batchCounts);
+      setBatchCounts(emptyBatchCounts);
+      setResult(null);
+      setCrops({});
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setRecording(false);
+    }
+  }, [batchCounts, recording, result]);
+
   return (
     <main className="w-full bg-[#f8fbfe] bg-[radial-gradient(ellipse_90%_70%_at_20%_-10%,rgba(0,102,255,0.09),transparent_60%),radial-gradient(ellipse_80%_60%_at_85%_15%,rgba(39,223,188,0.11),transparent_55%),radial-gradient(ellipse_90%_60%_at_50%_105%,rgba(16,185,129,0.08),transparent_60%),radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.85),rgba(240,246,253,0.95))] min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -143,25 +258,7 @@ export function Inspector() {
 
       <div className="relative flex flex-col w-full">
         <div className="p-4 sm:p-gutter-desktop flex flex-col gap-space-lg max-w-[1720px] mx-auto w-full">
-          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-white/60 backdrop-blur-2xl border border-white/80 rounded-2xl px-space-md py-space-sm shadow-sm">
-            <div className="flex items-center gap-space-sm">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0050cb] to-[#0066ff] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,102,255,0.28)]">
-                <span className="material-symbols-outlined text-[24px] is-filled">
-                  egg
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-headline-lg text-headline-lg text-[#181c1f] tracking-tight font-bold leading-none">
-                  Egg-CV
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-space-xs">
-              <span className="rounded-full bg-blue-50 border border-blue-200/70 px-3 py-1 font-code-metric text-label-sm text-[#0050cb] font-bold">
-                MVP // LOCAL OPERATOR
-              </span>
-            </div>
-          </header>
+          <Navbar />
 
           <section className="flex flex-col bg-white/70 backdrop-blur-2xl border border-white/80 rounded-3xl p-space-md shadow-[0_12px_36px_0_rgba(0,80,203,0.07)] relative overflow-hidden">
             <CameraViewfinder
@@ -191,7 +288,17 @@ export function Inspector() {
             </div>
           )}
 
-          <ResultsPanel result={result} crops={crops} />
+          <ResultsPanel
+            result={result}
+            crops={crops}
+            onRecordBatch={() => void recordBatch()}
+            recording={recording}
+            batchCounts={{
+              good: batchCounts.good,
+              stained: batchCounts.stained,
+              damaged: batchCounts.damaged,
+            }}
+          />
           <StatusFooter health={health} result={result} onExport={exportBatch} />
         </div>
       </div>

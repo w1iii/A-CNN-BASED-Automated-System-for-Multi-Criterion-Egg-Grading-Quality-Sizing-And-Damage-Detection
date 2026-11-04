@@ -153,6 +153,12 @@ class PredictionResponse(BaseModel):
     damaged_count: int
     not_damaged_count: int
     needs_review_count: int
+    batch_recorded: bool = False
+    batch_recorded_at: Optional[datetime] = None
+    okay_count: int = 0
+    stained_count: int = 0
+    batch_damaged_count: int = 0
+    batch_review_count: int = 0
     processing_time_ms: Optional[int]
     created_at: datetime
     completed_at: Optional[datetime]
@@ -183,6 +189,24 @@ class PredictionDetail(PredictionResponse):
 
     class Config:
         from_attributes = True
+
+
+class BatchSummary(BaseModel):
+    okay_count: int
+    stained_count: int
+    damaged_count: int
+    review_count: int
+    total_count: int
+
+
+class BatchRecordRequest(BaseModel):
+    okay_count: int = Field(ge=0)
+    stained_count: int = Field(ge=0)
+    damaged_count: int = Field(ge=0)
+
+
+class BatchRecordResponse(PredictionDetail):
+    batch: BatchSummary
 
 
 class PredictionCreate(BaseModel):

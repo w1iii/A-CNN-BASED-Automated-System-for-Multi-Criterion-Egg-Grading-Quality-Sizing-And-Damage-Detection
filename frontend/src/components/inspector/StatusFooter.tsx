@@ -21,8 +21,6 @@ export function StatusFooter({
   result,
   onExport,
 }: StatusFooterProps) {
-  const ready = health?.status === 'healthy';
-
   return (
     <footer className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md bg-white/60 backdrop-blur-2xl border border-white/80 rounded-2xl px-space-md py-space-sm shadow-sm">
       <div className="flex flex-wrap items-center gap-space-md">

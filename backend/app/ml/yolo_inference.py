@@ -198,30 +198,12 @@ class YOLOPredictor:
     def draw_boxes(self, image: np.ndarray, detections: List[Dict]) -> np.ndarray:
         img = image.copy()
 
-        grade_colors = {
-            "A": (34, 197, 94),
-            "B": (59, 130, 246),
-            "C": (245, 158, 11),
-            "N/A": (107, 114, 128),
-            "Reject": (239, 68, 68),
-        }
-
         for det in detections:
             x1, y1, x2, y2 = det["bbox"]
-            conf = det["confidence"]
-            final_grade = det.get("grade", "N/A")
-            provisional = det.get("provisional_grade", "N/A")
-            if final_grade == "N/A" and provisional not in (None, "N/A"):
-                grade = provisional
-                label = f"P:{grade} {conf:.2f}"
-            else:
-                grade = final_grade
-                label = f"{grade} {conf:.2f}"
-            weight = det.get("weight_g")
-            if weight:
-                label += f" {weight}g"
-
-            color = grade_colors.get(grade, (128, 128, 128))
+            color = (59, 130, 246)
+            damage = det.get("damage_status", "Unavailable")
+            cleanliness = det.get("cleanliness_status", "Unavailable")
+            label = f"D:{damage} C:{cleanliness}"
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
             cv2.putText(
                 img,

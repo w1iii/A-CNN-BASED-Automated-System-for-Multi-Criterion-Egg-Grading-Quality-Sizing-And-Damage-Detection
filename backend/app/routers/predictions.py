@@ -6,7 +6,13 @@ from typing import List
 from app.database import get_db
 from app.models import User, Prediction
 from app.operator import get_operator
-from app.schemas import PredictionResponse, PredictionDetail
+from app.schemas import (
+    PredictionResponse,
+    PredictionDetail,
+    BatchRecordRequest,
+    BatchRecordResponse,
+    BatchSummary,
+)
 from app.services.file_service import file_service
 from app.services.prediction_service import prediction_service
 from app.ml.model_registry import model_registry
@@ -14,6 +20,27 @@ from app.services.prediction_service import PredictionService
 from app.utils.errors import public_error_message
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
+
+
+def _batch_response(prediction: Prediction) -> BatchRecordResponse:
+    data = PredictionDetail.model_validate(prediction).model_dump()
+    data.pop("detection_boxes", None)
+    return BatchRecordResponse(
+        **data,
+        detection_boxes=prediction.detection_boxes,
+        batch=BatchSummary(
+            okay_count=prediction.okay_count,
+            stained_count=prediction.stained_count,
+            damaged_count=prediction.batch_damaged_count,
+            review_count=prediction.batch_review_count,
+            total_count=(
+                prediction.okay_count
+                + prediction.stained_count
+                + prediction.batch_damaged_count
+                + prediction.batch_review_count
+            ),
+        ),
+    )
 
 
 @router.post("/upload", response_model=PredictionDetail)
@@ -112,6 +139,24 @@ def get_prediction(
             detail="Prediction not found"
         )
     return prediction
+
+
+@router.post("/{prediction_id}/record", response_model=BatchRecordResponse)
+def record_batch(
+    prediction_id: int,
+    payload: BatchRecordRequest,
+    db: Session = Depends(get_db),
+    operator: User = Depends(get_operator),
+):
+    try:
+        prediction = prediction_service.record_batch(
+            db, prediction_id, operator.id, payload
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return _batch_response(prediction)
 
 
 @router.delete("/{prediction_id}")

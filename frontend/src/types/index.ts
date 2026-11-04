@@ -63,6 +63,12 @@ export interface Prediction {
   damaged_count: number;
   not_damaged_count: number;
   needs_review_count: number;
+  batch_recorded: boolean;
+  batch_recorded_at: string | null;
+  okay_count: number;
+  stained_count: number;
+  batch_damaged_count: number;
+  batch_review_count: number;
   processing_time_ms: number | null;
   created_at: string;
   completed_at: string | null;
@@ -73,6 +79,18 @@ export interface PredictionDetail extends Prediction {
   annotated_path: string | null;
   annotated_url: string | null;
   detection_boxes: DetectionBox[];
+}
+
+export interface BatchSummary {
+  okay_count: number;
+  stained_count: number;
+  damaged_count: number;
+  review_count: number;
+  total_count: number;
+}
+
+export interface BatchRecord extends PredictionDetail {
+  batch: BatchSummary;
 }
 
 export interface DashboardStats {

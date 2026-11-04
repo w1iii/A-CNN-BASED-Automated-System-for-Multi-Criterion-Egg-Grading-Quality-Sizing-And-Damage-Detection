@@ -2,6 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import numpy as np
 
@@ -40,6 +41,25 @@ class FakeBoxes:
 
 
 class YoloContractTests(unittest.TestCase):
+    def test_annotated_label_keeps_damage_and_cleanliness_separate(self):
+        predictor = YOLOPredictor(model_path="dummy.pt")
+        image = np.zeros((100, 100, 3), dtype=np.uint8)
+        detections = [
+            {
+                "bbox": [10, 10, 80, 80],
+                "confidence": 0.95,
+                "damage_status": "Not Damaged",
+                "cleanliness_status": "Stained",
+            }
+        ]
+
+        with patch("app.ml.yolo_inference.cv2.putText") as put_text:
+            predictor.draw_boxes(image, detections)
+
+        label = put_text.call_args.args[1]
+        self.assertEqual(label, "D:Not Damaged C:Stained")
+        self.assertNotIn("Reject", label)
+
     def test_parse_results_emits_sorted_canonical_per_egg_fields(self):
         predictor = YOLOPredictor(
             model_path="dummy.pt", mm_per_pixel=0.09, weight_k=0.0

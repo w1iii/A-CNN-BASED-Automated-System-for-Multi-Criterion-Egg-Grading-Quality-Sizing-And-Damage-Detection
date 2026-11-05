@@ -23,31 +23,7 @@ export function StatusFooter({
 }: StatusFooterProps) {
   return (
     <footer className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md bg-white/60 backdrop-blur-2xl border border-white/80 rounded-2xl px-space-md py-space-sm shadow-sm">
-      <div className="flex flex-wrap items-center gap-space-md">
-        <div className="flex items-center gap-space-xs rounded-full bg-white/80 border border-slate-200 px-3 py-1">
-          <StatusDot online={Boolean(health)} />
-        </div>
-        <div className="flex flex-wrap items-center gap-space-sm font-code-metric text-label-sm text-[#727687]">
-          <span className={health?.model_loaded ? 'text-emerald-700' : ''}>
-            DETECTOR {health?.model_loaded ? 'OK' : '—'}
-          </span>
-          <span className={health?.damage_model_loaded ? 'text-emerald-700' : ''}>
-            DAMAGE {health?.damage_model_loaded ? 'OK' : '—'}
-          </span>
-          <span
-            className={
-              health?.cleanliness_model_loaded ? 'text-emerald-700' : ''
-            }
-          >
-            CLEAN {health?.cleanliness_model_loaded ? 'OK' : 'UNAVAILABLE'}
-          </span>
-          <span className={health?.database_connected ? 'text-emerald-700' : ''}>
-            DB {health?.database_connected ? 'OK' : '—'}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between lg:justify-end gap-space-sm">
+            <div className="flex flex-wrap items-center justify-between lg:justify-end gap-space-sm">
         <div className="flex items-center gap-space-xs text-[#727687] font-body-sm text-body-sm">
           <span>Shortcuts</span>
           <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-code-metric text-label-sm">

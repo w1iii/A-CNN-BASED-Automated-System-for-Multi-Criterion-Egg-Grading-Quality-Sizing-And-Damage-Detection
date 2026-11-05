@@ -1,4 +1,4 @@
-import { RefObject } from 'react';
+import { DragEvent, RefObject, useState } from 'react';
 import { CameraStatus } from '../../hooks/useCamera';
 
 interface CameraViewfinderProps {
@@ -7,8 +7,8 @@ interface CameraViewfinderProps {
   error: string | null;
   busy: boolean;
   previewDataUrl: string | null;
-  onEnable: () => void;
   onUpload: () => void;
+  onDropFile: (file: File) => void;
 }
 
 export function CameraViewfinder({
@@ -17,13 +17,60 @@ export function CameraViewfinder({
   error,
   busy,
   previewDataUrl,
-  onEnable,
   onUpload,
+  onDropFile,
 }: CameraViewfinderProps) {
   const showPermissionCard = status !== 'ready';
+  const [dropActive, setDropActive] = useState(false);
+
+  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDropActive(false);
+    if (busy) return;
+
+    const sampleUrl = event.dataTransfer.getData('text/egg-cv-sample');
+    if (sampleUrl) {
+      const response = await fetch(sampleUrl);
+      const blob = await response.blob();
+      const filename = sampleUrl.split('/').pop() ?? 'egg-sample';
+      onDropFile(new File([blob], filename, { type: blob.type }));
+      return;
+    }
+
+    const file = event.dataTransfer.files[0];
+    if (file) onDropFile(file);
+  };
 
   return (
-    <div className="relative w-full aspect-[16/9] bg-gradient-to-b from-[#eaf1f8] to-[#dde7f2] rounded-2xl overflow-hidden flex items-center justify-center group select-none border border-blue-100/60 shadow-inner">
+    <div
+      className="relative w-full aspect-[16/9] bg-gradient-to-b from-[#eaf1f8] to-[#dde7f2] rounded-2xl overflow-hidden flex items-center justify-center group select-none border border-blue-100/60 shadow-inner"
+      onDragEnter={(event) => {
+        event.preventDefault();
+        if (!busy) setDropActive(true);
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        if (!busy) setDropActive(true);
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        if (event.currentTarget === event.target) setDropActive(false);
+      }}
+      onDrop={(event) => void handleDrop(event)}
+    >
+      <div
+        className={`pointer-events-none absolute inset-0 z-30 flex items-center justify-center border-4 border-dashed transition ${
+          dropActive
+            ? 'border-[#0066ff] bg-blue-500/20'
+            : 'border-transparent'
+        }`}
+      >
+        {dropActive && (
+          <div className="rounded-full bg-white/90 px-5 py-3 font-headline-md text-headline-md font-semibold text-[#0050cb] shadow-lg">
+            Release to analyze image
+          </div>
+        )}
+      </div>
       <video
         ref={videoRef}
         autoPlay
@@ -110,24 +157,7 @@ export function CameraViewfinder({
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-space-sm w-full mt-1">
               <button
-                className="w-full sm:w-auto flex-1 px-space-lg py-2.5 bg-gradient-to-r from-[#10b981] to-[#059669] text-white font-headline-md text-headline-md rounded-full hover:shadow-[0_0_24px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-space-xs shadow-[0_4px_16px_rgba(16,185,129,0.3)] border border-emerald-300/40 active:scale-95 disabled:opacity-70 disabled:cursor-wait"
-                type="button"
-                onClick={onEnable}
-                disabled={status === 'starting'}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {status === 'starting' ? 'progress_activity' : 'videocam'}
-                </span>
-                <span className="font-semibold text-sm">
-                  {status === 'starting'
-                    ? 'Starting Camera...'
-                    : error
-                      ? 'Retry Camera'
-                      : 'Enable Camera'}
-                </span>
-              </button>
-              <button
-                className="w-full sm:w-auto px-space-lg py-2.5 bg-white/80 text-[#0050cb] border border-blue-200 font-headline-md text-headline-md rounded-full hover:bg-blue-50 transition-all flex items-center justify-center gap-space-xs active:scale-95"
+                className="w-full px-space-lg py-2.5 bg-white/80 text-[#0050cb] border border-blue-200 font-headline-md text-headline-md rounded-full hover:bg-blue-50 transition-all flex items-center justify-center gap-space-xs active:scale-95"
                 type="button"
                 onClick={onUpload}
               >

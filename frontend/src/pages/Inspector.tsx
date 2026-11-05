@@ -9,6 +9,7 @@ import {
 } from '../utils/frames';
 import { CameraViewfinder } from '../components/inspector/CameraViewfinder';
 import { CaptureBanner } from '../components/inspector/CaptureBanner';
+import { SampleImageTray } from '../components/inspector/SampleImageTray';
 import { BatchCounts, ResultsPanel } from '../components/inspector/ResultsPanel';
 import { StatusFooter } from '../components/inspector/StatusFooter';
 import { Navbar } from '../components/Navbar';
@@ -175,10 +176,8 @@ export function Inspector() {
     if (!busy) fileInputRef.current?.click();
   }, [busy]);
 
-  const handleFileChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      event.target.value = '';
+  const handleImageFile = useCallback(
+    async (file: File) => {
       if (!file) return;
       try {
         const frame = await fileToFrame(file);
@@ -188,6 +187,15 @@ export function Inspector() {
       }
     },
     [analyzeFrame],
+  );
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (file) void handleImageFile(file);
+    },
+    [handleImageFile],
   );
 
   useEffect(() => {
@@ -261,14 +269,15 @@ export function Inspector() {
           <Navbar />
 
           <section className="flex flex-col bg-white/70 backdrop-blur-2xl border border-white/80 rounded-3xl p-space-md shadow-[0_12px_36px_0_rgba(0,80,203,0.07)] relative overflow-hidden">
+            <SampleImageTray busy={busy} />
             <CameraViewfinder
               videoRef={camera.videoRef}
               status={camera.status}
               error={camera.error}
               busy={busy}
               previewDataUrl={previewDataUrl}
-              onEnable={() => void camera.start()}
               onUpload={handleUpload}
+              onDropFile={(file) => void handleImageFile(file)}
             />
             <CaptureBanner
               canCapture={camera.status === 'ready'}

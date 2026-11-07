@@ -169,11 +169,11 @@ export function CameraViewfinder({
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="font-headline-lg text-headline-lg text-[#181c1f] tracking-tight">
-                {error ? 'Camera Unavailable' : 'Camera Access Required'}
+                Drop image here
               </span>
               <p className="font-body-md text-body-md text-[#525b6a]">
                 {error ??
-                  'Please allow camera permissions to initialize the live optical feed and automated egg defect inspection stream.'}
+                  'Drag & drop or tap to select an egg image.'}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-space-sm w-full mt-1">

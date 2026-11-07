@@ -41,6 +41,21 @@ export function CameraViewfinder({
     if (file) onDropFile(file);
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (!busy) setDropActive(true);
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDropActive(false);
+  };
+
+  const handleTouchOver = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (!busy) setDropActive(true);
+  };
+
   return (
     <div
       className="relative w-full aspect-[16/9] bg-gradient-to-b from-[#eaf1f8] to-[#dde7f2] rounded-2xl overflow-hidden flex items-center justify-center group select-none border border-blue-100/60 shadow-inner"
@@ -57,6 +72,12 @@ export function CameraViewfinder({
         if (event.currentTarget === event.target) setDropActive(false);
       }}
       onDrop={(event) => void handleDrop(event)}
+      onTouchStart={(event) => handleTouchStart(event)}
+      onTouchEnd={(event) => handleTouchEnd(event)}
+      onTouchMove={(event) => {
+        event.preventDefault();
+        handleTouchOver(event);
+      }}
     >
       <div
         className={`pointer-events-none absolute inset-0 z-30 flex items-center justify-center border-4 border-dashed transition ${

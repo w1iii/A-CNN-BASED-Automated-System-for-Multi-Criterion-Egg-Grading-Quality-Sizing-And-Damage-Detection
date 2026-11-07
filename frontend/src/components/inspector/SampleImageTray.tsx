@@ -54,8 +54,20 @@ export function SampleImageTray({ busy }: SampleImageTrayProps) {
     event.dataTransfer.setData('text/egg-cv-sample', imageUrl);
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+    event.preventDefault();
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
+    event.preventDefault();
+  };
+
   return (
-    <section className="rounded-2xl border border-blue-100/80 bg-white/60 p-space-sm shadow-sm">
+    <section
+      className="rounded-2xl border border-blue-100/80 bg-white/60 p-space-sm shadow-sm"
+      onTouchStart={(event) => handleTouchStart(event)}
+      onTouchEnd={(event) => handleTouchEnd(event)}
+    >
       <div className="mb-space-sm flex items-center justify-between gap-space-sm">
         <div>
           <h2 className="font-headline-md text-headline-md font-semibold text-[#181c1f]">
@@ -79,6 +91,8 @@ export function SampleImageTray({ busy }: SampleImageTrayProps) {
               alt={filename}
               draggable={!busy}
               onDragStart={(event) => handleDragStart(event, imageUrl)}
+              onTouchStart={(event) => handleTouchStart(event)}
+              onTouchEnd={(event) => handleTouchEnd(event)}
               className={`h-24 w-32 shrink-0 rounded-xl border border-blue-100 object-cover shadow-sm transition ${
                 busy
                   ? 'cursor-wait opacity-60'
